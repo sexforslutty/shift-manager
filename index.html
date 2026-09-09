@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>с4 — смены</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#calendar-title">К расписанию</a>
+  <main class="app" id="main-content">
+    <header class="topbar">
+      <div class="brand"><img src="logo.png" alt="Логотип С4 кибер арены"><strong>С4 кибер арена</strong></div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Включить тёмную тему">
+          <span class="theme-toggle-icon" aria-hidden="true"></span>
+          <span class="theme-toggle-label">Тёмная тема</span>
+        </button>
+        <button class="admin-button" id="admin-open">Админка</button>
+      </div>
+    </header>
+
+    <section class="current-card" aria-labelledby="current-title">
+      <div class="current-card-heading">
+        <div class="section-kicker" id="current-title">СЕЙЧАС</div>
+        <time class="live-clock" id="live-clock" aria-label="Текущее время"></time>
+      </div>
+      <div id="current-content"></div>
+    </section>
+
+    <div class="layout">
+      <section class="panel calendar-panel" aria-labelledby="calendar-title">
+        <div class="panel-heading">
+          <div><div class="section-kicker">РАСПИСАНИЕ</div><h1 id="calendar-title">Календарь смен</h1></div>
+          <div class="month-controls"><button id="previous-month" aria-label="Предыдущий месяц">‹</button><strong id="month-title"></strong><button id="next-month" aria-label="Следующий месяц">›</button></div>
+        </div>
+        <div class="mobile-day-view" id="mobile-day-view">
+          <div class="mobile-day-switcher">
+            <button id="previous-day" aria-label="Предыдущий день">‹</button>
+            <div class="mobile-day-current">
+              <span class="mobile-day-label">СЕЙЧАС</span>
+              <strong id="mobile-day-title"></strong>
+              <small id="mobile-day-date"></small>
+            </div>
+            <button id="next-day" aria-label="Следующий день">›</button>
+          </div>
+          <div class="mobile-day-shifts" id="mobile-day-shifts"></div>
+        </div>
+        <div class="calendar-week"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+        <div class="legend"><span><i class="day-dot"></i>День · 10:00–22:00</span><span><i class="night-dot"></i>Ночь · 22:00–10:00</span></div>
+      </section>
+
+      <section class="panel employees-panel" aria-labelledby="employees-title">
+        <div class="panel-heading compact"><div><div class="section-kicker">КОМАНДА</div><h2 id="employees-title">Сотрудники</h2></div><span class="count-badge" id="employee-count">0</span></div>
+        <div class="employee-list" id="employee-list"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="admin-modal" hidden>
+    <section class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+      <div class="modal-heading"><div><div class="section-kicker">ДОСТУП</div><h2 id="admin-title">Админка</h2></div><button class="close-button" id="close-admin" aria-label="Закрыть">×</button></div>
+      <form id="admin-login">
+        <p class="hint">Загрузка расписания и команды выполняется только через Excel.</p>
+        <label>Логин<input id="login-name" required autocomplete="username"></label>
+        <label>Пароль<input id="login-password" type="password" required autocomplete="current-password"></label>
+        <p class="error" id="login-error" hidden>Неверный логин или пароль.</p>
+        <button class="dark-button full" type="submit">Войти</button>
+      </form>
+      <div id="admin-panel" hidden>
+        <div class="admin-user">Вы вошли как <strong id="admin-name"></strong><button class="link-button" id="logout" type="button">Выйти</button></div>
+        <div class="admin-block"><h3>Расписание и команда</h3><p>Файл должен содержать листы «Смены» и «Команда».</p><label class="file-button"><input id="excel-file" type="file" accept=".xlsx,.xls"><span>Загрузить Excel</span></label><button class="outline-button download-current" id="download-current" type="button">Скачать текущий Excel</button><small id="file-name">Файл не выбран</small></div>
+        <div class="admin-block"><h3>Шаблон</h3><p>В листе «Смены» указывайте дату в формате дд.мм.гггг.</p><button class="outline-button" id="download-template" type="button">Скачать шаблон Excel</button></div>
+        <div class="admin-block"><h3>Учётные данные</h3><form id="credentials-form" class="credentials"><input id="new-name" required placeholder="Новый логин" maxlength="30"><input id="new-password" required type="password" minlength="4" placeholder="Новый пароль"><button class="outline-button" type="submit">Сохранить</button></form></div>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
