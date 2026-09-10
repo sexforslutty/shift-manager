@@ -4,13 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Расписание смен команды С4 кибер арены">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>с4 — смены</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="Страница загружается">
+    <div class="page-loader-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="page-loader-content">
+      <span class="page-loader-kicker">С4 КИБЕР АРЕНА</span>
+      <strong>Страница загружается</strong>
+      <div class="page-loader-track" aria-hidden="true"><span id="page-loader-progress"></span></div>
+      <small id="page-loader-percent">0%</small>
+    </div>
+  </div>
   <a class="skip-link" href="#calendar-title">К расписанию</a>
   <main class="app" id="main-content">
     <header class="topbar">

@@ -4,9 +4,15 @@ const getTodayIso = () => {
 };
 const today = new Date();
 const initialTodayIso = getTodayIso();
-const state = { month: new Date(today.getFullYear(), today.getMonth(), 1), selected: initialTodayIso, today: initialTodayIso };
+const state = { month: new Date(today.getFullYear(), today.getMonth(), 1), selected: initialTodayIso, today: initialTodayIso, mobileDirection: 'next' };
 const appData = { shifts: [], team: [] };
 const $ = (selector) => document.querySelector(selector);
+const loaderStartedAt = performance.now();
+let loaderProgress = 8;
+const loaderTimer = setInterval(() => {
+  loaderProgress = Math.min(loaderProgress + Math.random() * 7, 88);
+  updateLoader(loaderProgress);
+}, 140);
 const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const weekdayNames = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
 const getData = (key, fallback = []) => JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
@@ -16,6 +22,32 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character
 }[character]));
 const initials = (name) => name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 const rowValue = (row, names) => { const key = Object.keys(row).find((item) => names.includes(item.trim().toLowerCase())); return key ? String(row[key]).trim() : ''; };
+const replayAnimation = (element, className) => {
+  if (!element) return;
+  element.classList.remove(className);
+  void element.offsetWidth;
+  element.classList.add(className);
+};
+function updateLoader(value) {
+  const progress = $('#page-loader-progress');
+  const percent = $('#page-loader-percent');
+  if (progress) progress.style.width = `${value}%`;
+  if (percent) percent.textContent = `${Math.round(value)}%`;
+}
+function finishLoader() {
+  const loader = $('#page-loader');
+  if (!loader || loader.classList.contains('is-hidden')) return;
+  const wait = Math.max(0, 650 - (performance.now() - loaderStartedAt));
+  clearInterval(loaderTimer);
+  setTimeout(() => {
+    updateLoader(100);
+    setTimeout(() => {
+      loader.classList.add('is-hidden');
+      setTimeout(() => loader.remove(), 650);
+    }, 260);
+  }, wait);
+}
+updateLoader(loaderProgress);
 const normalizeDate = (value) => {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
@@ -57,6 +89,7 @@ function applyTheme(isDark) {
 }
 const isShiftActive = (row) => {
   if (state.selected !== getTodayIso()) return false;
+  if ((row.date || row['Дата']) && (row.date || row['Дата']) !== state.selected) return false;
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const night = isNight(String(row.shift || row['Смена'] || ''));
@@ -70,15 +103,20 @@ function renderEmployees() {
   })).filter((person) => person.name);
   $('#employee-count').textContent = team.length;
   $('#employee-list').innerHTML = team.length ? team.map((person) => `<div class="employee"><div class="avatar">${escapeHtml(initials(person.name))}</div><div><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role || 'Администратор')}</small></div></div>`).join('') : '<div class="empty-state">Сотрудники не загружены</div>';
+  replayAnimation($('#employee-list'), 'list-swap');
 }
 
 function renderCurrent() {
   const shifts = appData.shifts.filter((row) => row.date === state.selected || row['Дата'] === state.selected);
   const isToday = state.selected === getTodayIso();
-  const currentType = isToday && new Date().getHours() >= 22 ? 'night' : 'day';
-  const current = (isToday ? shifts.find((row) => isShiftActive(row)) || shifts.find((row) => isNight(String(row.shift || row['Смена'] || '')) === (currentType === 'night')) : shifts[0]) || shifts[0];
+  $('#current-title').textContent = isToday ? 'СЕЙЧАС' : 'ВЫБРАННАЯ ДАТА';
+  const currentType = new Date().getHours() >= 22 ? 'night' : 'day';
+  const current = (isToday
+    ? shifts.find((row) => isShiftActive(row)) || shifts.find((row) => isNight(String(row.shift || row['Смена'] || '')) === (currentType === 'night'))
+    : shifts[0]) || shifts[0];
   if (!current) {
     $('#current-content').innerHTML = '<div class="current-empty"><h2>Загрузите данные</h2><p>Добавьте Excel-файл в админке, чтобы увидеть расписание.</p><span class="current-status empty"><i></i>нет данных</span></div>';
+    replayAnimation($('#current-content'), 'content-swap');
     return;
   }
   const night = isNight(String(current.shift || current['Смена'] || ''));
@@ -86,12 +124,14 @@ function renderCurrent() {
   const shift = current.shift || current['Смена'] || (night ? 'Ночь' : 'День');
   const active = isShiftActive(current);
   $('#current-content').innerHTML = `<div class="current-main"><div><h2>${escapeHtml(name)}</h2><p>${shift === 'Ночь' || night ? 'Ночная смена' : 'Дневная смена'} · ${night ? '22:00 — 10:00' : '10:00 — 22:00'}</p></div><span class="current-status${active ? ' active' : ''}"><i></i>${active ? 'идёт сейчас' : 'смена по расписанию'}</span></div>`;
+  replayAnimation($('#current-content'), 'content-swap');
 }
 
 function renderCalendar() {
   const year = state.month.getFullYear();
   const month = state.month.getMonth();
   $('#month-title').textContent = `${monthNames[month]} ${year}`;
+  replayAnimation($('#month-title'), 'month-swap');
   const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
   const totalDays = new Date(year, month + 1, 0).getDate();
   const shifts = appData.shifts;
@@ -104,13 +144,22 @@ function renderCalendar() {
     html += `<button class="calendar-day${todayMarker}${date === state.selected ? ' selected' : ''}" data-date="${date}"><span class="calendar-day-number">${day}</span>${dayShifts.map((row) => `<span class="calendar-shift ${isNight(String(row.shift || row['Смена'] || '')) ? 'night' : 'day'}">${escapeHtml(row.name || row['Сотрудник'] || 'Смена')}</span>`).join('')}</button>`;
   }
   $('#calendar-grid').innerHTML = html;
-  document.querySelectorAll('.calendar-day[data-date]').forEach((day) => day.addEventListener('click', () => { state.selected = day.dataset.date; renderCurrent(); renderCalendar(); }));
+  replayAnimation($('#calendar-grid'), 'grid-swap');
+  document.querySelectorAll('.calendar-day[data-date]').forEach((day) => day.addEventListener('click', () => {
+    state.mobileDirection = day.dataset.date >= state.selected ? 'next' : 'previous';
+    state.selected = day.dataset.date;
+    renderCurrent();
+    renderCalendar();
+  }));
   renderMobileDay();
 }
 
 function render() { renderCurrent(); renderCalendar(); renderEmployees(); }
 
 function renderMobileDay() {
+  const mobileView = $('#mobile-day-view');
+  mobileView.classList.toggle('is-next', state.mobileDirection === 'next');
+  mobileView.classList.toggle('is-previous', state.mobileDirection === 'previous');
   const selectedDate = new Date(`${state.selected}T12:00:00`);
   const shifts = appData.shifts.filter((row) => (row.date || row['Дата']) === state.selected);
   $('#mobile-day-title').textContent = weekdayNames[selectedDate.getDay()];
@@ -123,9 +172,12 @@ function renderMobileDay() {
     const active = isShiftActive(row);
     return `<div class="mobile-shift-row ${night ? 'night' : 'day'}${active ? ' active' : ''}"><span class="mobile-shift-dot"></span><div><strong>${escapeHtml(name)}</strong><small>${night ? 'Ночная смена' : 'Дневная смена'}</small></div><b>${active ? 'Идёт сейчас' : (night ? '22:00 — 10:00' : '10:00 — 22:00')}</b></div>`;
   }).join('') : '<div class="mobile-no-shift">На этот день смены не назначены</div>';
+  replayAnimation($('.mobile-day-current'), 'mobile-day-swap');
+  replayAnimation($('#mobile-day-shifts'), 'content-swap');
 }
 
 function shiftSelectedDay(offset) {
+  state.mobileDirection = offset > 0 ? 'next' : 'previous';
   const date = new Date(`${state.selected}T12:00:00`);
   date.setDate(date.getDate() + offset);
   state.selected = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -210,9 +262,18 @@ async function loadSavedWorkbook() {
     render();
   } catch (error) {
     toast('Не удалось загрузить сохранённый Excel');
+  } finally {
+    finishLoader();
   }
 }
 loadSavedWorkbook();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('Не удалось включить offline-режим PWA', error);
+    });
+  });
+}
 setInterval(() => {
   const currentDate = getTodayIso();
   const dayChanged = currentDate !== state.today;

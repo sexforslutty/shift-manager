@@ -1,0 +1,28 @@
+{
+  "name": "С4 Shift Manager",
+  "short_name": "С4 смены",
+  "description": "Расписание смен команды С4 кибер арены",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "768x887",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Открыть расписание",
+      "short_name": "Расписание",
+      "url": "/"
+    }
+  ]
+}
